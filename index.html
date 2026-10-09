@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recharge Desk · Techforce break planner</title>
+<style>
+:root {
+  --bg: #fbfbfd; --bg-alt: #f5f5f7; --card: #ffffff; --ink: #1d1d1f; --mut: #6e6e73; --line: #d2d2d7; --hair: rgba(0,0,0,.08);
+  --blue: #0a72e8; --blue-soft: rgba(10,114,232,.10);
+  --green: #1d8a4e; --green-soft: rgba(52,199,89,.14); --amber: #9a5b00; --amber-soft: rgba(255,159,10,.16);
+  --red: #c4001a; --red-soft: rgba(255,59,48,.10);
+  --break: #14b8a6; --lunch: #ff9f0a; --dinner: #8e5cf7; --breakfast: #ff375f;
+  --shadow: 0 2px 8px rgba(0,0,0,.04), 0 18px 50px rgba(0,0,0,.07);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.2,.7,.2,1);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000; --bg-alt: #0c0c0e; --card: #1c1c1e; --ink: #f5f5f7; --mut: #a1a1a6; --line: #3a3a3c; --hair: rgba(255,255,255,.1);
+    --blue: #2997ff; --blue-soft: rgba(41,151,255,.16); --green: #30d158; --amber: #ffd60a; --red: #ff453a;
+    --shadow: 0 2px 8px rgba(0,0,0,.5), 0 18px 50px rgba(0,0,0,.45);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; }
+  .t-msg { opacity: 1 !important; transform: none !important; }
+}
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.47 var(--font); letter-spacing: -.012em; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; letter-spacing: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--blue) 55%, transparent); outline-offset: 2px; border-radius: 10px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.narrow { max-width: 820px; margin: 0 auto; padding: 0 24px; text-align: center; }
+section { padding: 110px 0; }
+.alt { background: var(--bg-alt); }
+.eyebrow { font-size: 19px; font-weight: 600; color: var(--mut); margin: 0 0 6px; }
+h1, h2, h3 { letter-spacing: -.025em; margin: 0; }
+.display { font-size: clamp(48px, 8vw, 92px); line-height: 1.02; font-weight: 700; }
+.headline { font-size: clamp(36px, 5.2vw, 60px); line-height: 1.06; font-weight: 700; }
+.lead { font-size: clamp(19px, 2.2vw, 25px); line-height: 1.35; color: var(--mut); font-weight: 500; margin: 18px auto 0; max-width: 700px; }
+.grad { background: linear-gradient(92deg, #10b3a0 0%, #2b7cf6 52%, #8a5cf6 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* ---------- nav ---------- */
+.gnav { position: sticky; top: 0; z-index: 50; height: 52px; background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--hair); }
+.gnav .wrap { height: 100%; display: flex; align-items: center; gap: 26px; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 17px; color: var(--ink); text-decoration: none; }
+.gnav nav { display: flex; gap: 22px; margin-left: auto; }
+.gnav nav a { color: var(--mut); text-decoration: none; font-size: 13px; transition: color .2s; }
+.gnav nav a:hover { color: var(--ink); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 980px; padding: 11px 22px;
+  font-size: 17px; font-weight: 500; text-decoration: none; transition: transform .2s var(--ease), background .2s, opacity .2s; white-space: nowrap; }
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: color-mix(in srgb, var(--blue) 88%, #000); }
+.btn-secondary { background: transparent; color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+.btn-secondary:hover { background: var(--blue-soft); }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+.link { color: var(--blue); text-decoration: none; font-size: 19px; background: none; border: 0; padding: 0; }
+.link::after { content: " ›"; }
+.link:hover { text-decoration: underline; }
+
+/* ---------- hero ---------- */
+.hero { padding: 84px 0 0; text-align: center; overflow: hidden; position: relative; }
+.hero::before { content: ""; position: absolute; inset: -30% -10% auto; height: 760px; pointer-events: none;
+  background: radial-gradient(40% 50% at 30% 40%, rgba(20,184,166,.20), transparent 70%), radial-gradient(40% 50% at 70% 35%, rgba(43,124,246,.18), transparent 70%), radial-gradient(30% 40% at 55% 75%, rgba(138,92,246,.14), transparent 70%);
+  filter: blur(10px); animation: drift 18s var(--ease) infinite alternate; }
+@keyframes drift { to { transform: translate3d(0, 30px, 0) scale(1.06); } }
+.hero .ctas { display: flex; gap: 22px; justify-content: center; align-items: center; margin-top: 30px; flex-wrap: wrap; }
+.stage { position: relative; margin: 64px auto 0; max-width: 760px; padding: 0 24px; }
+.device { background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--hair); border-radius: 30px; box-shadow: var(--shadow);
+  padding: 22px; text-align: left; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.t-head { display: flex; gap: 12px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--hair); }
+.av { flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; }
+.av.bot { background: linear-gradient(135deg, #2b7cf6, #8a5cf6); }
+.av.me { background: linear-gradient(135deg, #10b3a0, #2b7cf6); }
+.t-head b, .t-msg b { font-size: 15px; } .t-head small, .t-msg small { color: var(--mut); font-size: 13px; }
+.t-head p { margin: 1px 0 0; color: var(--mut); font-size: 14px; }
+.t-msg { display: flex; gap: 12px; padding: 14px 0 2px 26px; opacity: 0; transform: translateY(10px); animation: pop .7s var(--ease) forwards; }
+.t-msg:nth-of-type(2) { animation-delay: .5s; } .t-msg:nth-of-type(3) { animation-delay: 1.2s; } .t-msg:nth-of-type(4) { animation-delay: 1.9s; }
+@keyframes pop { to { opacity: 1; transform: none; } }
+.t-msg p { margin: 2px 0 0; font-size: 15px; }
+.mention { color: var(--blue); background: var(--blue-soft); border-radius: 5px; padding: 0 4px; }
+.t-msg em { display: block; font-style: normal; color: var(--mut); font-size: 12px; margin-top: 2px; }
+.react { display: inline-flex; align-items: center; gap: 5px; margin-top: 7px; font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 3px 10px; }
+.react.ok { background: var(--green-soft); color: var(--green); } .react.wait { background: var(--amber-soft); color: var(--amber); }
+.react.info { background: var(--blue-soft); color: var(--blue); }
+
+/* ---------- features ---------- */
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 60px; }
+.feature { background: var(--card); border-radius: 28px; padding: 34px 30px 32px; box-shadow: var(--shadow); text-align: left; }
+.feature .ic { width: 52px; height: 52px; border-radius: 15px; display: grid; place-items: center; margin-bottom: 22px; }
+.feature h3 { font-size: 24px; line-height: 1.15; margin-bottom: 10px; }
+.feature p { margin: 0; color: var(--mut); font-size: 17px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 70px; text-align: center; }
+.stat b { display: block; font-size: clamp(40px, 5vw, 56px); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; }
+.stat span { color: var(--mut); font-size: 17px; }
+
+/* ---------- planner ---------- */
+.planner { display: grid; grid-template-columns: minmax(0, 1fr) 410px; gap: 34px; align-items: start; margin-top: 56px; text-align: left; }
+.group { padding: 30px 0 34px; border-top: 1px solid var(--hair); }
+.group:first-child { border-top: 0; padding-top: 0; }
+.g-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; }
+.g-num { color: var(--mut); font-size: 15px; font-weight: 600; min-width: 18px; }
+.g-head h3 { font-size: 28px; line-height: 1.15; }
+.g-head p { margin: 4px 0 0; color: var(--mut); font-size: 15px; }
+.tiles { display: grid; gap: 12px; }
+.tiles.c3 { grid-template-columns: repeat(3, 1fr); } .tiles.c2 { grid-template-columns: repeat(2, 1fr); }
+.tile { text-align: left; background: var(--card); border: 0; border-radius: 18px; padding: 16px 18px; box-shadow: inset 0 0 0 1px var(--line);
+  transition: box-shadow .2s, transform .2s var(--ease); display: flex; flex-direction: column; gap: 2px; min-height: 78px; }
+.tile:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mut) 70%, transparent); }
+.tile[aria-pressed=true] { box-shadow: inset 0 0 0 2px var(--blue); }
+.tile b { font-size: 17px; font-weight: 600; } .tile span { color: var(--mut); font-size: 14px; }
+.tile .badge { align-self: flex-start; margin-top: 6px; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--green-soft); color: var(--green); }
+.tile .badge.soon { background: var(--blue-soft); color: var(--blue); }
+.field { margin-top: 14px; }
+.field label, .lbl { display: block; font-size: 14px; font-weight: 600; margin-bottom: 7px; }
+.hint { color: var(--mut); font-size: 14px; margin-top: 8px; }
+input[type=text], input[type=time], select { width: 100%; background: var(--card); border: 0; box-shadow: inset 0 0 0 1px var(--line);
+  border-radius: 12px; padding: 11px 13px; font-size: 16px; transition: box-shadow .2s; appearance: none; -webkit-appearance: none; }
+select { background-image: linear-gradient(45deg, transparent 50%, var(--mut) 50%), linear-gradient(135deg, var(--mut) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 52%, calc(100% - 13px) 52%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
+input:focus, select:focus { outline: none; box-shadow: inset 0 0 0 2px var(--blue); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { border: 0; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); border-radius: 999px; padding: 9px 16px; font-size: 15px; transition: .2s; min-width: 58px; }
+.pill:hover { box-shadow: inset 0 0 0 1px var(--mut); }
+.pill[aria-pressed=true] { background: var(--ink); color: var(--bg); box-shadow: none; }
+.minis { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.mini { background: none; border: 0; padding: 0; color: var(--blue); font-size: 14px; }
+.mini:hover { text-decoration: underline; }
+.seg { display: inline-flex; background: color-mix(in srgb, var(--mut) 14%, transparent); border-radius: 12px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; border-radius: 9px; padding: 8px 16px; font-size: 15px; font-weight: 500; color: var(--mut); transition: .2s; }
+.seg button[aria-pressed=true] { background: var(--card); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.brow { display: grid; grid-template-columns: 14px 1.15fr 1fr .9fr 40px; gap: 10px; align-items: center; margin-bottom: 10px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.x { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: var(--mut); font-size: 20px; line-height: 1; }
+.x:hover { background: var(--red-soft); color: var(--red); }
+.addrow { display: flex; gap: 18px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+.mrow { display: grid; grid-template-columns: 14px 1fr 150px; gap: 6px 12px; align-items: center; padding: 14px 0; border-top: 1px solid var(--hair); }
+.mrow:first-child { border-top: 0; }
+.mrow .ml b { font-size: 16px; } .mrow .ml small { color: var(--mut); display: block; font-size: 13.5px; }
+.mrow .allowed { grid-column: 2 / -1; font-size: 13.5px; color: var(--mut); }
+.mrow .allowed.warn { color: var(--amber); } .mrow .allowed.error { color: var(--red); }
+.switch { display: flex; gap: 14px; align-items: center; cursor: pointer; }
+.switch input { appearance: none; -webkit-appearance: none; width: 51px; height: 31px; border-radius: 999px; background: color-mix(in srgb, var(--mut) 30%, transparent);
+  position: relative; flex: none; transition: background .25s; cursor: pointer; margin: 0; }
+.switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.2); transition: transform .25s var(--ease); }
+.switch input:checked { background: #34c759; } .switch input:checked::after { transform: translateX(20px); }
+.switch span { font-size: 16px; }
+
+/* ---------- summary ---------- */
+.summary { position: sticky; top: 76px; background: var(--card); border-radius: 30px; box-shadow: var(--shadow); padding: 26px 24px 22px; }
+.s-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.s-head h3 { font-size: 24px; }
+.status { font-size: 13px; font-weight: 600; padding: 5px 11px; border-radius: 999px; white-space: nowrap; }
+.status.ok { background: var(--green-soft); color: var(--green); } .status.warn { background: var(--amber-soft); color: var(--amber); }
+.status.bad { background: var(--red-soft); color: var(--red); }
+.s-sub { color: var(--mut); font-size: 14px; margin: 6px 0 16px; }
+.next { display: flex; gap: 12px; align-items: center; background: var(--bg-alt); border-radius: 16px; padding: 12px 14px; margin-bottom: 18px; }
+.next small { display: block; color: var(--mut); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.next b { display: block; font-size: 17px; } .next span { color: var(--mut); font-size: 14px; }
+.pulse { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(48,209,88,.6); animation: pulse 2s infinite; }
+.pulse.off { background: var(--mut); animation: none; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(48,209,88,0); } 100% { box-shadow: 0 0 0 0 rgba(48,209,88,0); } }
+.tl { position: relative; padding-top: 30px; margin-bottom: 4px; }
+.tl-track { position: relative; height: 34px; border-radius: 10px; background: var(--bg-alt); overflow: hidden; }
+.tl-shift { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--blue) 9%, transparent); }
+.tl-zone { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--red) 16%, transparent) 0 5px, transparent 5px 10px); }
+.tl-thread { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--blue); }
+.tl-blk { position: absolute; top: 6px; bottom: 6px; border-radius: 7px; min-width: 6px; }
+.tl-pin { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.tl-pin span { font-size: 11px; font-weight: 600; background: var(--ink); color: var(--card); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+.tl-pin i { width: 2px; height: 44px; background: var(--ink); opacity: .45; }
+.tl-ticks { position: relative; height: 18px; margin-top: 5px; }
+.tl-ticks span { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--mut); white-space: nowrap; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--mut); margin: 4px 0 6px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.posts { list-style: none; margin: 14px 0 0; padding: 0; }
+.post { display: grid; grid-template-columns: 78px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid var(--hair); }
+.p-time { font-size: 26px; font-weight: 600; letter-spacing: -.03em; line-height: 1.05; }
+.p-time small { display: block; font-size: 11.5px; color: var(--mut); font-weight: 600; letter-spacing: .02em; margin-top: 3px; }
+.post.error .p-time { color: var(--mut); text-decoration: line-through; }
+.p-title { font-weight: 600; font-size: 15.5px; display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.chip { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; background: var(--bg-alt); color: var(--mut); }
+.p-msg { font-family: var(--mono); font-size: 12.5px; color: var(--mut); margin-top: 3px; word-break: break-word; }
+.p-days { font-size: 13px; color: var(--mut); margin-top: 3px; }
+.notes { list-style: none; margin: 7px 0 0; padding: 0; font-size: 13px; }
+.notes li { position: relative; padding-left: 16px; margin-top: 3px; }
+.notes li::before { content: ""; position: absolute; left: 2px; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--mut); }
+.notes li.warn { color: var(--amber); } .notes li.warn::before { background: var(--amber); }
+.notes li.error { color: var(--red); } .notes li.error::before { background: var(--red); }
+.notes li.info { color: var(--mut); }
+.infos { list-style: none; padding: 12px 0 0; margin: 4px 0 0; border-top: 1px solid var(--hair); font-size: 13px; color: var(--mut); }
+.infos:empty { display: none; }
+.infos li + li { margin-top: 5px; }
+.s-actions { display: grid; gap: 10px; margin-top: 18px; }
+.s-actions .row { display: flex; gap: 10px; } .s-actions .row .btn { flex: 1; }
+
+/* ---------- setup ---------- */
+.msgcard { margin: 48px auto 0; max-width: 860px; background: #1d1d1f; color: #f5f5f7; border-radius: 30px; padding: 26px; text-align: left; box-shadow: var(--shadow); }
+@media (prefers-color-scheme: dark) { .msgcard { background: #1c1c1e; box-shadow: inset 0 0 0 1px var(--hair); } }
+.msgcard .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.msgcard .dots { display: flex; gap: 7px; } .msgcard .dots i { width: 12px; height: 12px; border-radius: 50%; background: #3a3a3c; }
+.msgcard pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: 14.5px/1.6 var(--mono); color: #e8e8ed; min-height: 160px; }
+.msgcard .seg { background: rgba(255,255,255,.1); } .msgcard .seg button { color: #a1a1a6; }
+.msgcard .seg button[aria-pressed=true] { background: #3a3a3c; color: #fff; box-shadow: none; }
+.steps3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin: 44px auto 0; max-width: 980px; text-align: left; }
+.steps3 div { padding-top: 16px; border-top: 2px solid var(--ink); }
+.steps3 b { display: block; font-size: 19px; margin-bottom: 6px; } .steps3 p { margin: 0; color: var(--mut); font-size: 16px; }
+
+/* ---------- rules ---------- */
+.acc { max-width: 860px; margin: 44px auto 0; text-align: left; }
+.acc details { border-top: 1px solid var(--line); }
+.acc details:last-child { border-bottom: 1px solid var(--line); }
+.acc summary { list-style: none; cursor: pointer; padding: 22px 40px 22px 0; font-size: 21px; font-weight: 600; position: relative; }
+.acc summary::-webkit-details-marker { display: none; }
+.acc summary::after { content: ""; position: absolute; right: 8px; top: 50%; width: 11px; height: 11px; border-right: 2px solid var(--mut); border-bottom: 2px solid var(--mut);
+  transform: translateY(-70%) rotate(45deg); transition: transform .3s var(--ease); }
+.acc details[open] summary::after { transform: translateY(-30%) rotate(225deg); }
+.acc .body { padding: 0 0 24px; color: var(--mut); font-size: 17px; }
+.acc table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.acc th, .acc td { text-align: left; padding: 9px 6px; border-bottom: 1px solid var(--hair); }
+.acc th { color: var(--ink); font-weight: 600; }
+footer { padding: 34px 0 50px; color: var(--mut); font-size: 12px; border-top: 1px solid var(--hair); }
+footer p { margin: 0 0 8px; }
+
+.toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); background: color-mix(in srgb, var(--ink) 92%, transparent); color: var(--bg);
+  padding: 11px 20px; border-radius: 999px; font-size: 15px; font-weight: 500; opacity: 0; pointer-events: none; transition: .35s var(--ease); z-index: 60; backdrop-filter: blur(10px); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.js .reveal { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.js .reveal.in { opacity: 1; transform: none; }
+
+@media (max-width: 1000px) {
+  .planner { grid-template-columns: 1fr; }
+  .summary { position: static; }
+}
+@media (max-width: 760px) {
+  section { padding: 80px 0; }
+  .gnav nav { display: none; } .gnav .btn { margin-left: auto; }
+  .features, .stats, .steps3, .tiles.c3 { grid-template-columns: 1fr; }
+  .tiles.c2 { grid-template-columns: 1fr; }
+  .brow { grid-template-columns: 14px 1fr 1fr 40px; } .brow .len { grid-column: 2 / 4; }
+  .mrow { grid-template-columns: 14px 1fr; } .mrow input { grid-column: 2; }
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add("js");</script>
+
+<header class="gnav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Recharge Desk home">
+      <svg width="22" height="22" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+        <rect x="3" y="9" width="24" height="16" rx="4.5" stroke="currentColor" stroke-width="2.6"/>
+        <rect x="28.5" y="14" width="3" height="6" rx="1.3" fill="currentColor"/>
+        <path d="M16.5 11.5 11.5 18h4l-1.5 4.5 5.5-7h-4l1-4z" fill="#14b8a6"/>
+      </svg>
+      Recharge Desk
+    </a>
+    <nav aria-label="Sections">
+      <a href="#how">How it works</a><a href="#plan">Planner</a><a href="#setup">Setup</a><a href="#rules">Rules</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#plan">Plan my breaks</a>
+  </div>
+</header>
+
+<main id="top">
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="narrow">
+      <p class="eyebrow">Techforce</p>
+      <h1 class="display"><span class="grad">Recharge Desk.</span></h1>
+      <p class="lead">Plan your breaks once. Claude requests them in your team's break thread, right on time, every shift.</p>
+      <div class="ctas">
+        <a class="btn btn-primary" href="#plan">Plan my breaks</a>
+        <a class="link" href="#how">See how it works</a>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="device" aria-label="Example of a break thread">
+        <div class="t-head">
+          <div class="av bot">BA</div>
+          <div><b>Break Approval Workflow</b> <small>07:00</small><p>Hey team! Post your breaks/lunchtime within this thread.</p></div>
+        </div>
+        <div class="t-msg"><div class="av me">YOU</div><div><b>You</b> <small>07:03</small><p>Break at 8:30AM <span class="mention">@Shift WFM</span></p><em>Sent using Claude</em><span class="react ok">✓ Approved</span></div></div>
+        <div class="t-msg"><div class="av me">YOU</div><div><b>You</b> <small>10:00</small><p>Lunch at 11:30AM <span class="mention">@Shift WFM</span></p><em>Sent using Claude</em><span class="react wait">Waiting for approval</span></div></div>
+        <div class="t-msg"><div class="av me">YOU</div><div><b>Recharge Desk</b> <small>Tomorrow</small><p>On leave? Set your Slack status and that day is skipped.</p><span class="react info">Skips leave days</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HOW ================= -->
+  <section id="how" class="alt">
+    <div class="narrow reveal">
+      <h2 class="headline">Set it once.<br>It runs every shift.</h2>
+      <p class="lead">No more typing the same break request every morning. Your plan becomes a daily routine that posts for you.</p>
+    </div>
+    <div class="wrap">
+      <div class="features">
+        <div class="feature reveal">
+          <div class="ic" style="background:rgba(20,184,166,.14)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18M8 15l2.5 2.5L16 13"/></svg></div>
+          <h3>Plan it here.</h3>
+          <p>Pick your stream, shift, days and break times. Every workflow rule is checked as you go.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ic" style="background:rgba(43,124,246,.14)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2b7cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2.5"/><path d="M5 16H4.5A1.5 1.5 0 0 1 3 14.5v-10A1.5 1.5 0 0 1 4.5 3h10A1.5 1.5 0 0 1 16 4.5V5"/></svg></div>
+          <h3>Paste into Claude.</h3>
+          <p>One message sets up your daily posts with the break-approval-poster skill.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ic" style="background:rgba(138,92,246,.14)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8a5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h3>Posted on time.</h3>
+          <p>Claude replies in the day's thread from your account and tags your WFM. Leave days are skipped.</p>
+        </div>
+      </div>
+      <div class="stats reveal">
+        <div class="stat"><b>30m–2h</b><span>posting window, checked for you</span></div>
+        <div class="stat"><b>0</b><span>break messages to type each day</span></div>
+        <div class="stat"><b>5</b><span>shift patterns built in</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PLANNER ================= -->
+  <section id="plan">
+    <div class="narrow reveal">
+      <h2 class="headline">Plan your breaks.</h2>
+      <p class="lead">All times are IST. Your plan stays on this page and in the link you copy, and nothing is sent anywhere.</p>
+    </div>
+    <div class="wrap">
+      <div class="planner">
+        <div class="config">
+          <div class="group reveal">
+            <div class="g-head"><span class="g-num">1</span><div><h3>Which stream are you on?</h3></div></div>
+            <div class="tiles c3" id="streamTiles">
+              <button type="button" class="tile" data-v="calls"><b>Calls</b><span>#it-tf-phone-comms</span><em class="badge">Ready</em></button>
+              <button type="button" class="tile" data-v="concierge"><b>Concierge</b><span>Your team's break channel</span><em class="badge soon">Set up on first use</em></button>
+              <button type="button" class="tile" data-v="chats"><b>Chats</b><span>Your team's break channel</span><em class="badge soon">Set up on first use</em></button>
+            </div>
+            <div class="field" id="channelWrap" hidden>
+              <label for="channel">Your team's break channel</label>
+              <input type="text" id="channel" placeholder="#your-break-channel" autocomplete="off">
+              <div class="hint">Claude finds your team's workflow bot in this channel during the one-time setup.</div>
+            </div>
+          </div>
+
+          <div class="group reveal">
+            <div class="g-head"><span class="g-num">2</span><div><h3>What's your shift?</h3><p>Suggested break times come from the workflow's shift table.</p></div></div>
+            <div class="tiles c3" id="shiftTiles"></div>
+            <div class="row2 field" id="customWrap" hidden>
+              <div><label for="start">Shift starts</label><input type="time" id="start"></div>
+              <div><label for="end">Shift ends</label><input type="time" id="end"></div>
+            </div>
+            <div class="hint" id="shiftNote"></div>
+          </div>
+
+          <div class="group reveal">
+            <div class="g-head"><span class="g-num">3</span><div><h3>Which days does it start?</h3><p>For night shifts, pick the day the shift begins.</p></div></div>
+            <div class="pills" id="dayPills"></div>
+            <div class="minis">
+              <button type="button" class="mini" data-days="1,2,3,4,5">Mon–Fri</button>
+              <button type="button" class="mini" data-days="0,1,2,3,4">Sun–Thu</button>
+              <button type="button" class="mini" data-days="2,3,4,5,6">Tue–Sat</button>
+              <button type="button" class="mini" data-days="0,1,2,3,4,5,6">Every day</button>
+            </div>
+          </div>
+
+          <div class="group reveal">
+            <div class="g-head"><span class="g-num">4</span><div><h3>Your breaks.</h3><p>Calls allowance: one 30-minute break and one 45-minute lunch.</p></div></div>
+            <div id="breakRows"></div>
+            <div class="addrow">
+              <button type="button" class="btn btn-secondary btn-sm" id="addBreak">+ Add a break</button>
+              <button type="button" class="mini" id="useSuggested">Use suggested times</button>
+            </div>
+          </div>
+
+          <div class="group reveal">
+            <div class="g-head"><span class="g-num">5</span><div><h3>When should Claude post?</h3><p>The workflow asks for requests 30 minutes to 2 hours before the break.</p></div></div>
+            <div class="seg" id="timingSeg" role="group" aria-label="Posting time">
+              <button type="button" data-v="lead">Before each break</button>
+              <button type="button" data-v="manual">At times I choose</button>
+            </div>
+            <div id="leadWrap" class="field">
+              <div class="pills" id="leadPills"></div>
+              <div class="hint">Claude can start a few minutes late, so 45 minutes is the earliest safe choice. 1 h 30 min is a good default.</div>
+            </div>
+            <div id="manualWrap" class="field" hidden>
+              <div id="manualRows"></div>
+              <div class="hint">Pick any time inside the allowed range. Times before midnight for an after-midnight break post the evening before.</div>
+            </div>
+          </div>
+
+          <div class="group reveal">
+            <div class="g-head"><span class="g-num">6</span><div><h3>Who approves?</h3><p>Your shift WFM or lead. Claude looks them up in Slack and confirms with you.</p></div></div>
+            <input type="text" id="leads" placeholder="Full name (separate two names with a comma)" autocomplete="off" aria-label="Who to tag">
+            <div class="field">
+              <label class="switch"><input type="checkbox" id="dm"><span>DM me about 10 minutes before each break saying whether it was approved</span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- summary -->
+        <aside class="summary" aria-label="Your schedule">
+          <div class="s-head"><h3>Your schedule</h3><span class="status ok" id="status">All set</span></div>
+          <p class="s-sub" id="sSub"></p>
+          <div class="next" id="next"><span class="pulse" id="pulse"></span><div><small>Next post</small><b id="nextWhen">–</b><span id="nextWhat"></span></div></div>
+          <div class="tl" id="timeline" aria-hidden="true"></div>
+          <div class="legend" id="legend"></div>
+          <ul class="posts" id="posts"></ul>
+          <ul class="infos" id="infos"></ul>
+          <div class="s-actions">
+            <button type="button" class="btn btn-primary" id="copyMsg">Copy setup message</button>
+            <div class="row">
+              <button type="button" class="btn btn-secondary btn-sm" id="copyLink">Copy plan link</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="ics">Calendar reminders</button>
+            </div>
+            <button type="button" class="mini" id="reset" style="justify-self:center">Start over</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SETUP ================= -->
+  <section id="setup" class="alt">
+    <div class="narrow reveal">
+      <h2 class="headline">Three steps.<br>Then it's automatic.</h2>
+      <p class="lead">You need the Claude desktop app with Slack connected. Keep the app open during your shift so posts go out.</p>
+    </div>
+    <div class="wrap">
+      <div class="steps3 reveal">
+        <div><b>1. Save the skill</b><p>Open <em>break-approval-poster.skill</em> in Claude and click <em>Save skill</em>.</p></div>
+        <div><b>2. Connect Slack</b><p>In Claude, open Settings, then Connectors, and connect Slack. You need to be in your break channel.</p></div>
+        <div><b>3. Paste your message</b><p>Copy the message below into Claude. It confirms the details, then schedules your daily posts.</p></div>
+      </div>
+      <div class="msgcard reveal">
+        <div class="top">
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="seg" id="modeSeg" role="group" aria-label="Message type">
+            <button type="button" data-v="new">New setup</button>
+            <button type="button" data-v="update">Change my schedule</button>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="copyMsg2">Copy</button>
+        </div>
+        <pre id="message" aria-label="Setup message for Claude"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RULES ================= -->
+  <section id="rules">
+    <div class="narrow reveal">
+      <h2 class="headline">The rules, built in.</h2>
+      <p class="lead">These come from the Calls Break Approval Workflow message. The planner checks them for you.</p>
+    </div>
+    <div class="acc reveal">
+      <details open><summary>Posting window</summary><div class="body">Post your break 30 minutes to 2 hours before it starts, because immediate approval isn't possible. Claude only posts inside this window. If your Claude app was closed and it's too late, it reports "Missed" so you can post by hand.</div></details>
+      <details><summary>First and last hour</summary><div class="body">No breaks during the first or last hour of your shift. The workflow's example: a shift ending at 8AM gets no break from 6:45AM.</div></details>
+      <details><summary>Breaks and lunch</summary><div class="body">The allowance is one 30-minute break and one 45-minute lunch. Split them, and don't take them together. Don't edit a break after it's approved.</div></details>
+      <details><summary>Who approves</summary><div class="body">Your shift WFM. If the WFM isn't on the floor, ask the available SME or ATL. Breaks taken without approval count as unauthorized.</div></details>
+      <details><summary>Shift table</summary><div class="body"><table><thead><tr><th>Shift</th><th>Break 1</th><th>Break 2</th></tr></thead><tbody id="shiftTable"></tbody></table></div></details>
+      <details><summary>What if I'm on leave or my plans change?</summary><div class="body">Set a Slack status like "On leave" or "OOO" and Claude skips that day. To change times, update your plan here, switch the message to "Change my schedule", and paste it into Claude.</div></details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Claude posts only from your own Slack account, only as a reply in your team's daily break thread. Your WFM still approves every break.</p>
+    <p>Recharge Desk · a Techforce break planner. Your plan is stored only in this page's link.</p>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/*PLANNER-START*/
+const DAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const STREAMS = {
+  calls:     { name: "Calls",     channel: "#it-tf-phone-comms", threadTime: "07:00", known: true },
+  concierge: { name: "Concierge", channel: "",                   threadTime: null,    known: false },
+  chats:     { name: "Chats",     channel: "",                   threadTime: null,    known: false },
+};
+const SHIFTS = [
+  { key: "06:30-16:00", start: "06:30", end: "16:00", b1: "08:30", b2: "11:30" },
+  { key: "10:30-20:00", start: "10:30", end: "20:00", b1: "12:30", b2: "16:00" },
+  { key: "15:30-01:00", start: "15:30", end: "01:00", b1: "17:30", b2: "21:00" },
+  { key: "18:30-04:00", start: "18:30", end: "04:00", b1: "20:30", b2: "23:30",
+    note: "The workflow table lists 11:30 for Break 2 on this shift. 23:30 is suggested here, so confirm with your WFM." },
+  { key: "22:30-08:00", start: "22:30", end: "08:00", b1: "00:30", b2: "02:30" },
+];
+const WIN_MIN = 30, WIN_MAX = 120, MARGIN = 15;
+const TYPES = ["Break", "Lunch", "Dinner", "Breakfast"];
+
+function toMin(s) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(s || "").trim());
+  if (!m) return null;
+  const h = +m[1], mi = +m[2];
+  return h > 23 || mi > 59 ? null : h * 60 + mi;
+}
+function norm(t) { return ((t % 1440) + 1440) % 1440; }
+function hhmm(t) { t = norm(t); return String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"); }
+function ampm(t) {
+  t = norm(t); const h = Math.floor(t / 60), m = t % 60, h12 = h % 12 || 12;
+  return h12 + (m ? ":" + String(m).padStart(2, "0") : "") + (h < 12 ? "AM" : "PM");
+}
+function fmtDur(m) { return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h` + (m % 60 ? ` ${m % 60} min` : ""); }
+function defaultDur(type) { return type === "Break" ? 30 : 45; }
+function leadNames(leads) { return String(leads || "").split(",").map(s => s.trim().replace(/^@/, "")).filter(Boolean); }
+function daysLabel(days) {
+  const d = [...new Set(days)].sort((a, b) => a - b);
+  if (!d.length) return "no days";
+  if (d.length === 7) return "every day";
+  if (d.length >= 3) {
+    for (const s of d) {
+      const seq = Array.from({ length: d.length }, (_, k) => (s + k) % 7);
+      if (seq.every(x => d.includes(x))) return DAY[s] + "–" + DAY[(s + d.length - 1) % 7];
+    }
+  }
+  return [...d].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map(x => DAY[x]).join(", ");
+}
+
+function computePlan(st) {
+  const out = { errors: 0, warns: 0, infos: [], rows: [], S: null, E: null, thread: null, lead: null };
+  const S = toMin(st.start), E0 = toMin(st.end);
+  if (S == null || E0 == null) { out.errors++; out.infos.push("Enter your shift start and end times."); return out; }
+  const E = E0 <= S ? E0 + 1440 : E0;
+  out.S = S; out.E = E;
+  if (!st.days.length) { out.errors++; out.infos.push("Pick at least one shift day."); }
+  const stream = STREAMS[st.stream];
+  const lead = Math.min(WIN_MAX, Math.max(WIN_MIN + MARGIN, +st.lead || 90));
+  out.lead = lead;
+  const manual = st.timing === "manual";
+
+  // The daily thread this shift uses: one posted within the first 3h of the shift
+  // (06:30 shift -> that morning's 07:00 thread), else the newest one before the shift starts.
+  let thread = null;
+  if (stream.threadTime) {
+    const T = toMin(stream.threadTime), c = [T - 1440, T, T + 1440];
+    const early = c.filter(t => t > S && t <= S + 180);
+    thread = early.length ? early[0] : Math.max(...c.filter(t => t <= S));
+  }
+  out.thread = thread;
+
+  const counts = {}, seen = {};
+  st.breaks.forEach(b => { counts[b.type] = (counts[b.type] || 0) + 1; });
+  const tags = leadNames(st.leads).map(n => "@" + n).join(" ");
+
+  st.breaks.forEach((b, i) => {
+    seen[b.type] = (seen[b.type] || 0) + 1;
+    const label = counts[b.type] > 1 ? `${b.type} ${seen[b.type]}` : b.type;
+    const dur = +b.dur || defaultDur(b.type);
+    const row = { i, label, type: b.type, dur, notes: [], level: "ok", manual: false };
+    const add = (level, text) => {
+      row.notes.push({ level, text });
+      if (level === "error") row.level = "error";
+      else if (level === "warn" && row.level === "ok") row.level = "warn";
+    };
+    out.rows.push(row);
+    let t = toMin(b.time);
+    if (t == null) { add("error", "Enter a start time."); return; }
+    if (t < S) t += 1440;
+    row.start = t; row.end = t + dur;
+    row.message = `${b.type} at ${ampm(t)}` + (tags ? " " + tags : "");
+    if (t >= E) { add("error", `Outside your shift (${st.start}–${st.end}).`); return; }
+    if (t < S + 60) add("warn", "Starts in the first hour of your shift. The workflow allows no breaks then.");
+    if (t + dur > E - 60) add("warn", "Runs into the last hour of your shift. The workflow allows no breaks then.");
+
+    // allowed posting range for this break
+    let earliest = t - WIN_MAX;
+    if (thread != null) earliest = Math.max(earliest, thread);
+    row.allowed = { earliest, latest: t - WIN_MIN, safe: t - WIN_MIN - MARGIN, none: earliest > t - WIN_MIN };
+
+    // automatic time (lead mode, also the default suggestion for manual mode)
+    let auto = t - lead, clamped = false;
+    if (thread != null && auto < thread + 3) { auto = thread + 3; clamped = true; }
+    row.auto = auto;
+
+    let post = null;
+    const p = toMin(b.postAt);
+    if (manual && p != null) {
+      row.manual = true;
+      row.custom = !!b.postTouched;
+      const delta = norm(t - p);
+      if (delta === 0) add("error", "The posting time is the same as the break start.");
+      else {
+        post = t - delta;
+        if (delta < WIN_MIN) add("error", `Only ${fmtDur(delta)} before the break. Requests need at least 30 minutes.`);
+        else if (delta < WIN_MIN + MARGIN) add("warn", `Only ${fmtDur(delta)} ahead. Claude can start a few minutes late, and under 30 minutes it skips the request. 45 minutes or more is safer.`);
+        if (delta > WIN_MAX) add("error", `${fmtDur(delta)} before the break. The workflow takes requests up to 2 hours ahead, so Claude would skip it.`);
+        if (thread != null) {
+          if (post < thread) add("error", `The day's break thread isn't open at ${hhmm(post)}. It opens at about ${stream.threadTime}.`);
+          else if (post < thread + 3) add("warn", "That's right as the thread opens. Claude waits a few minutes if it isn't there yet.");
+        }
+      }
+    } else {
+      post = auto;
+      if (clamped) {
+        add("info", `Posts at ${hhmm(post)}, just after the day's break thread opens at about ${stream.threadTime}.`);
+        if (post > t - WIN_MIN) add("error", "The thread opens too close to this break to request it 30+ minutes ahead. Pick a later time.");
+        else if (post > t - WIN_MIN - MARGIN) add("warn", "With Claude's few-minute delay, this may post less than 30 minutes before the break.");
+      }
+      if (manual) add("info", "No posting time set, so the automatic time is used.");
+    }
+    if (post == null) return;
+    if (thread != null && post >= thread + 1440) add("error", "This would land in the next day's thread. Check your shift and break times.");
+    row.post = post;
+    row.ahead = t - post;
+    row.dayOffset = Math.floor(post / 1440);
+    row.postDays = st.days.map(d => ((d + row.dayOffset) % 7 + 7) % 7).sort((a, b) => a - b);
+    if (thread != null && Math.floor(post / 1440) > Math.floor(thread / 1440))
+      add("info", "Posted after midnight, into the previous day's thread (the newest one), like other night-shift requests.");
+  });
+
+  const placed = out.rows.filter(r => r.start != null && r.start < E).sort((a, b) => a.start - b.start);
+  for (let k = 1; k < placed.length; k++) {
+    const a = placed[k - 1], b = placed[k];
+    if (b.start < a.end) { b.notes.push({ level: "error", text: `Overlaps ${a.label}.` }); b.level = "error"; }
+    else if (b.start - a.end < 15) {
+      b.notes.push({ level: "warn", text: `Back to back with ${a.label}. The workflow asks you not to take them together.` });
+      if (b.level === "ok") b.level = "warn";
+    }
+  }
+  if (st.stream === "calls") {
+    const nBreak = st.breaks.filter(b => b.type === "Break").length, nMeal = st.breaks.length - nBreak;
+    if (nBreak > 1 || nMeal > 1) out.infos.push("The Calls allowance is one 30-minute break and one 45-minute lunch. Extra requests may be declined.");
+  } else {
+    out.infos.push(`Times for ${stream.name} assume the same 30-minute to 2-hour window as Calls. Claude checks your team's workflow message during setup.`);
+  }
+  if (!st.breaks.length) { out.errors++; out.infos.push("Add at least one break."); }
+  if (!leadNames(st.leads).length) out.infos.push("Add who to tag. Your request needs your WFM's approval.");
+  out.rows.forEach(r => { if (r.level === "error") out.errors++; else if (r.level === "warn") out.warns++; });
+  return out;
+}
+
+function buildMessage(st, plan) {
+  const s = STREAMS[st.stream];
+  const ch = s.known ? s.channel : (String(st.channel || "").trim() || "please help me find my team's break channel");
+  const names = leadNames(st.leads).join(", ");
+  const manual = st.timing === "manual";
+  const breaks = st.breaks.map((b, i) => {
+    const r = plan.rows[i] || {};
+    const postTxt = manual && r.post != null ? `, post at ${hhmm(r.post)}` : "";
+    return `${b.type} at ${b.time || "--:--"} (${+b.dur || defaultDur(b.type)} min${postTxt})`;
+  }).join("; ");
+  const lines = [
+    st.mode === "update"
+      ? "Change my break schedule with the break-approval-poster skill. Replace my current break posts with:"
+      : "Set up my breaks with the break-approval-poster skill:",
+    `- Stream: ${s.name} (${ch})`,
+    `- Shift: ${st.start}–${st.end} IST, starting ${daysLabel(st.days)}`,
+    `- Breaks: ${breaks || "none yet"}`,
+    `- Tag: ${names || "my shift WFM (ask me who)"}`,
+    manual ? "- Posting: at the exact times above (IST)" : `- Post ${plan.lead || st.lead} minutes before each break`,
+    `- Approval DM before each break: ${st.dm ? "yes" : "no"}`,
+  ];
+  const ok = plan.rows.filter(r => r.post != null && r.level !== "error");
+  if (ok.length) lines.push("", "Planner preview (IST): " + ok.map(r => `${r.label} posts at ${hhmm(r.post)} on ${daysLabel(r.postDays)}`).join("; ") + ".");
+  return lines.join("\n");
+}
+
+/* Next post, computed in IST whatever the viewer's timezone. 1970-01-01 (day 0) was a Thursday. */
+function nextPost(st, plan, nowMs) {
+  const nowM = Math.floor(nowMs / 60000) + 330, day0 = Math.floor(nowM / 1440);
+  let best = null;
+  for (let k = -2; k <= 8; k++) {
+    const d = day0 + k, wd = ((d + 4) % 7 + 7) % 7;
+    if (!st.days.includes(wd)) continue;
+    plan.rows.forEach(r => {
+      if (r.post == null || r.level === "error") return;
+      const at = d * 1440 + r.post;
+      if (at > nowM && (!best || at < best.at)) best = { at, row: r };
+    });
+  }
+  if (!best) return null;
+  const dd = Math.floor(best.at / 1440) - day0;
+  const dayTxt = dd === 0 ? "Today" : dd === 1 ? "Tomorrow" : DAY[((Math.floor(best.at / 1440) + 4) % 7 + 7) % 7];
+  return { when: `${dayTxt} ${hhmm(best.at)} IST`, what: `${best.row.label} request, in ${fmtDur(best.at - nowM)}`, at: best.at, row: best.row };
+}
+
+function icsEscape(s) { return String(s).replace(/[\\,;]/g, m => "\\" + m).replace(/\n/g, "\\n"); }
+function buildICS(st, plan, nowMs) {
+  const s = STREAMS[st.stream];
+  const BY = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+  const nowM = Math.floor(nowMs / 60000) + 330, day0 = Math.floor(nowM / 1440);
+  const stamp = new Date(nowMs).toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Techforce//Recharge Desk//EN", "CALSCALE:GREGORIAN",
+    "BEGIN:VTIMEZONE", "TZID:Asia/Kolkata", "BEGIN:STANDARD", "DTSTART:19700101T000000", "TZOFFSETFROM:+0530", "TZOFFSETTO:+0530", "TZNAME:IST", "END:STANDARD", "END:VTIMEZONE"];
+  plan.rows.forEach((r, i) => {
+    if (r.post == null || r.level === "error") return;
+    let first = null;
+    for (let k = -1; k <= 8 && first == null; k++) {
+      const d = day0 + k, wd = ((d + 4) % 7 + 7) % 7;
+      if (st.days.includes(wd) && d * 1440 + r.post > nowM) first = d * 1440 + r.post;
+    }
+    if (first == null) return;
+    const dt = new Date(Math.floor(first / 1440) * 86400000);
+    const ymd = dt.getUTCFullYear() + String(dt.getUTCMonth() + 1).padStart(2, "0") + String(dt.getUTCDate()).padStart(2, "0");
+    lines.push("BEGIN:VEVENT", `UID:recharge-desk-${i}-${nowMs}@techforce`, `DTSTAMP:${stamp}`,
+      `DTSTART;TZID=Asia/Kolkata:${ymd}T${hhmm(first).replace(":", "")}00`, "DURATION:PT10M",
+      `RRULE:FREQ=WEEKLY;BYDAY=${r.postDays.map(d => BY[d]).join(",")}`,
+      `SUMMARY:${icsEscape(`Break request: ${r.label} at ${ampm(r.start)}`)}`,
+      `DESCRIPTION:${icsEscape(`Claude posts "${r.message}" in ${s.channel || "your break channel"}. If the Claude app is closed, post it yourself.`)}`,
+      "BEGIN:VALARM", "ACTION:DISPLAY", "TRIGGER:PT0M", `DESCRIPTION:${icsEscape(`Break request: ${r.label}`)}`, "END:VALARM", "END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+/*PLANNER-END*/
+
+/* ---------------- UI ---------------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COLORS = { Break: "var(--break)", Lunch: "var(--lunch)", Dinner: "var(--dinner)", Breakfast: "var(--breakfast)" };
+const LEADS = [45, 60, 75, 90, 105, 120];
+const DEFAULT = {
+  mode: "new", stream: "calls", channel: "", shift: "06:30-16:00", start: "06:30", end: "16:00",
+  days: [1, 2, 3, 4, 5],
+  breaks: [{ type: "Break", time: "08:30", dur: 30, postAt: "", postTouched: false }, { type: "Lunch", time: "11:30", dur: 45, postAt: "", postTouched: false }],
+  leads: "", timing: "lead", lead: 90, dm: false, touched: false,
+};
+let state = JSON.parse(JSON.stringify(DEFAULT));
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function press(nodes, fn) { nodes.forEach(n => n.setAttribute("aria-pressed", String(!!fn(n)))); }
+function suggestedFor(key) {
+  const s = SHIFTS.find(x => x.key === key);
+  return s ? [{ type: "Break", time: s.b1, dur: 30, postAt: "", postTouched: false }, { type: "Lunch", time: s.b2, dur: 45, postAt: "", postTouched: false }] : null;
+}
+
+function hashFor(s) {
+  const { touched, ...keep } = s;
+  return "#p=" + btoa(unescape(encodeURIComponent(JSON.stringify(keep)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function loadHash() {
+  const m = /#p=([A-Za-z0-9_\-]+)/.exec(location.hash);
+  if (!m) return;
+  try {
+    const s = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, "+").replace(/_/g, "/")))));
+    if (s && STREAMS[s.stream] && Array.isArray(s.days) && Array.isArray(s.breaks)) state = { ...state, ...s, touched: true };
+  } catch (e) { /* ignore a broken link */ }
+}
+
+/* ---- static pieces ---- */
+function buildStatic() {
+  $("#shiftTiles").innerHTML = SHIFTS.map(s => `<button type="button" class="tile" data-v="${s.key}"><b>${s.start} – ${s.end}</b><span>Break ${s.b1} · Lunch ${s.b2}</span></button>`).join("")
+    + `<button type="button" class="tile" data-v="custom"><b>Custom</b><span>Enter your own times</span></button>`;
+  $("#dayPills").innerHTML = DAY.map((d, i) => `<button type="button" class="pill" data-d="${i}">${d}</button>`).join("");
+  $("#leadPills").innerHTML = LEADS.map(v => `<button type="button" class="pill" data-v="${v}">${fmtDur(v)}</button>`).join("");
+  $("#shiftTable").innerHTML = SHIFTS.map(s => `<tr><td>${s.start} – ${s.end}</td><td>${s.b1}</td><td>${s.key === "18:30-04:00" ? "11:30 (as listed)" : s.b2}</td></tr>`).join("");
+}
+
+/* ---- form ---- */
+function renderForm() {
+  press($$("#streamTiles .tile"), n => n.dataset.v === state.stream);
+  $("#channelWrap").hidden = STREAMS[state.stream].known;
+  if ($("#channel").value !== state.channel) $("#channel").value = state.channel;
+  press($$("#shiftTiles .tile"), n => n.dataset.v === state.shift);
+  $("#customWrap").hidden = state.shift !== "custom";
+  $("#start").value = state.start; $("#end").value = state.end;
+  const sh = SHIFTS.find(x => x.key === state.shift);
+  $("#shiftNote").textContent = sh?.note || "";
+  $("#useSuggested").hidden = !sh;
+  press($$("#dayPills .pill"), n => state.days.includes(+n.dataset.d));
+  renderBreakRows();
+  press($$("#timingSeg button"), n => n.dataset.v === state.timing);
+  $("#leadWrap").hidden = state.timing !== "lead";
+  $("#manualWrap").hidden = state.timing !== "manual";
+  press($$("#leadPills .pill"), n => +n.dataset.v === state.lead);
+  if ($("#leads").value !== state.leads) $("#leads").value = state.leads;
+  $("#dm").checked = !!state.dm;
+  press($$("#modeSeg button"), n => n.dataset.v === state.mode);
+  renderManualRows();
+}
+
+function renderBreakRows() {
+  $("#breakRows").innerHTML = state.breaks.map((b, i) => `
+    <div class="brow" data-i="${i}">
+      <span class="dot" style="background:${COLORS[b.type]}"></span>
+      <select data-k="type" aria-label="Type of break ${i + 1}">${TYPES.map(t => `<option ${t === b.type ? "selected" : ""}>${t}</option>`).join("")}</select>
+      <input type="time" data-k="time" value="${esc(b.time)}" aria-label="Start time of break ${i + 1}">
+      <select class="len" data-k="dur" aria-label="Length of break ${i + 1}">${[15, 30, 45, 60].map(d => `<option value="${d}" ${+b.dur === d ? "selected" : ""}>${d} min</option>`).join("")}</select>
+      <button type="button" class="x" data-del="${i}" aria-label="Remove break ${i + 1}" title="Remove">×</button>
+    </div>`).join("");
+  $("#addBreak").hidden = state.breaks.length >= 4;
+}
+
+function renderManualRows() {
+  const plan = computePlan(state);
+  state.breaks.forEach((b, i) => {               // pre-fill untouched times with the automatic suggestion
+    const r = plan.rows[i];
+    if (!b.postTouched && r && r.auto != null) b.postAt = hhmm(r.auto);
+  });
+  $("#manualRows").innerHTML = state.breaks.map((b, i) => `
+    <div class="mrow" data-i="${i}">
+      <span class="dot" style="background:${COLORS[b.type]}"></span>
+      <div class="ml"><b id="ml-${i}"></b><small id="ms-${i}"></small></div>
+      <input type="time" data-k="postAt" value="${esc(b.postAt)}" aria-label="Posting time for break ${i + 1}">
+      <div class="allowed" id="allowed-${i}"></div>
+    </div>`).join("") || `<p class="hint">Add a break first.</p>`;
+}
+
+/* ---- results ---- */
+function pct(t, R0, R1) { return ((t - R0) / (R1 - R0)) * 100; }
+
+function update() {
+  const plan = computePlan(state);
+  const s = STREAMS[state.stream];
+
+  // manual rows: labels and allowed range, updated in place so focus isn't lost
+  plan.rows.forEach((r, i) => {
+    const lab = $(`#ml-${i}`); if (!lab) return;
+    lab.textContent = r.label;
+    $(`#ms-${i}`).textContent = r.start != null ? `Starts ${hhmm(r.start)}` : "No start time yet";
+    const el = $(`#allowed-${i}`);
+    if (!r.allowed) { el.textContent = ""; el.className = "allowed"; return; }
+    const worst = r.notes.find(n => n.level === "error") || r.notes.find(n => n.level === "warn");
+    const range = r.allowed.none ? "No valid posting time for this break."
+      : `Allowed ${hhmm(r.allowed.earliest)}–${hhmm(r.allowed.latest)}, safest by ${hhmm(Math.max(r.allowed.earliest, r.allowed.safe))}`;
+    el.textContent = worst && state.timing === "manual" ? `${range}. ${worst.text}` : range + (r.post != null ? `. Posting ${fmtDur(r.ahead)} ahead.` : "");
+    el.className = "allowed " + (worst && state.timing === "manual" ? worst.level : "");
+  });
+
+  // status + subtitle
+  const good = plan.rows.filter(r => r.level !== "error" && r.post != null).length;
+  const st = $("#status");
+  if (plan.errors) { st.className = "status bad"; st.textContent = `${plan.errors} to fix`; }
+  else if (plan.warns) { st.className = "status warn"; st.textContent = `${plan.warns} to check`; }
+  else { st.className = "status ok"; st.textContent = "All set"; }
+  $("#sSub").textContent = `${s.name} · ${state.start}–${state.end} · starts ${daysLabel(state.days)} · ${good} post${good === 1 ? "" : "s"} a shift`;
+
+  renderNext(plan);
+
+  // timeline
+  const tl = $("#timeline");
+  if (plan.S == null) { tl.innerHTML = ""; $("#legend").innerHTML = ""; }
+  else {
+    const posts = plan.rows.filter(r => r.post != null && r.level !== "error").map(r => r.post);
+    const R0 = Math.floor((Math.min(plan.S, ...posts) - 20) / 60) * 60;
+    const R1 = Math.ceil((plan.E + 20) / 60) * 60;
+    let h = `<div class="tl-track">
+      <div class="tl-shift" style="left:${pct(plan.S, R0, R1)}%;width:${pct(plan.E, R0, R1) - pct(plan.S, R0, R1)}%"></div>
+      <div class="tl-zone" style="left:${pct(plan.S, R0, R1)}%;width:${pct(plan.S + 60, R0, R1) - pct(plan.S, R0, R1)}%"></div>
+      <div class="tl-zone" style="left:${pct(plan.E - 60, R0, R1)}%;width:${pct(plan.E, R0, R1) - pct(plan.E - 60, R0, R1)}%"></div>`;
+    if (plan.thread != null && plan.thread >= R0 && plan.thread <= R1) h += `<div class="tl-thread" style="left:${pct(plan.thread, R0, R1)}%"></div>`;
+    plan.rows.filter(r => r.start != null && r.start < plan.E).forEach(r => {
+      h += `<div class="tl-blk" style="left:${pct(r.start, R0, R1)}%;width:${Math.max(pct(r.end, R0, R1) - pct(r.start, R0, R1), 1.2)}%;background:${COLORS[r.type]}"></div>`;
+    });
+    h += `</div>`;
+    plan.rows.filter(r => r.post != null && r.level !== "error").forEach(r => {
+      h += `<div class="tl-pin" style="left:${pct(r.post, R0, R1)}%"><span>${hhmm(r.post)}</span><i></i></div>`;
+    });
+    const step = (R1 - R0) / 60 > 12 ? 180 : (R1 - R0) / 60 > 8 ? 120 : 60;
+    let ticks = "";
+    for (let t = R0; t <= R1; t += step) ticks += `<span style="left:${pct(t, R0, R1)}%">${hhmm(t)}</span>`;
+    tl.innerHTML = h + `<div class="tl-ticks">${ticks}</div>`;
+    const types = [...new Set(plan.rows.filter(r => r.start != null).map(r => r.type))];
+    $("#legend").innerHTML = types.map(t => `<span><i style="background:${COLORS[t]}"></i>${t}</span>`).join("")
+      + `<span><i style="background:repeating-linear-gradient(135deg, color-mix(in srgb, var(--red) 40%, transparent) 0 3px, transparent 3px 6px)"></i>No-break hour</span>`
+      + (plan.thread != null ? `<span><i style="background:var(--blue)"></i>Thread opens</span>` : "");
+  }
+
+  // post list
+  $("#posts").innerHTML = plan.rows.map(r => {
+    const time = r.post != null && r.level !== "error" ? hhmm(r.post) : (r.post != null ? hhmm(r.post) : "––:––");
+    const sub = r.post != null && r.level !== "error" ? "Claude posts" : "Not scheduled";
+    const notes = r.notes.length ? `<ul class="notes">${r.notes.map(n => `<li class="${n.level}">${esc(n.text)}</li>`).join("")}</ul>` : "";
+    const days = r.postDays ? `${daysLabel(r.postDays)}${r.ahead != null ? ` · ${fmtDur(r.ahead)} ahead` : ""}` : "";
+    return `<li class="post ${r.level}">
+      <div class="p-time">${time}<small>${sub}</small></div>
+      <div>
+        <div class="p-title"><span class="dot" style="background:${COLORS[r.type]}"></span>${esc(r.label)}${r.start != null ? ` · ${hhmm(r.start)}–${hhmm(r.end)}` : ""}${r.custom ? `<span class="chip">your time</span>` : ""}</div>
+        <div class="p-msg">${esc(r.message || "")}</div>
+        <div class="p-days">${days}</div>
+        ${notes}
+      </div>
+    </li>`;
+  }).join("");
+  $("#infos").innerHTML = plan.infos.map(t => `<li>${esc(t)}</li>`).join("");
+
+  $("#message").textContent = buildMessage(state, plan);
+  try { history.replaceState(null, "", hashFor(state)); } catch (e) { /* some previews block this */ }
+  return plan;
+}
+
+function renderNext(plan) {
+  const n = plan.errors ? null : nextPost(state, plan, Date.now());
+  $("#pulse").className = "pulse" + (n ? "" : " off");
+  $("#nextWhen").textContent = n ? n.when : (plan.errors ? "Fix the issues below" : "Nothing scheduled");
+  $("#nextWhat").textContent = n ? n.what : "";
+}
+
+function renderAll() { renderForm(); update(); }
+
+/* ---- helpers ---- */
+function toast(text) {
+  const t = $("#toast"); t.textContent = text; t.classList.add("show");
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 2200);
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); let ok = false;
+    try { ok = document.execCommand("copy"); } catch (_) { /* ignore */ }
+    ta.remove(); return ok;
+  }
+}
+function copyMessage() {
+  const plan = computePlan(state);
+  copyText(buildMessage(state, plan)).then(ok => toast(ok ? (plan.errors ? "Copied. Fix the flagged issues first." : "Copied. Paste it into Claude.") : "Select the message and copy it manually."));
+}
+
+/* ---- events ---- */
+function bind() {
+  $("#streamTiles").addEventListener("click", e => { const t = e.target.closest(".tile"); if (!t) return; state.stream = t.dataset.v; renderAll(); });
+  $("#channel").addEventListener("input", e => { state.channel = e.target.value; update(); });
+  $("#shiftTiles").addEventListener("click", e => {
+    const t = e.target.closest(".tile"); if (!t) return;
+    state.shift = t.dataset.v;
+    const sh = SHIFTS.find(x => x.key === state.shift);
+    if (sh) { state.start = sh.start; state.end = sh.end; if (!state.touched) state.breaks = suggestedFor(sh.key); }
+    renderAll();
+  });
+  ["start", "end"].forEach(k => $("#" + k).addEventListener("change", e => { state[k] = e.target.value; renderManualRows(); update(); }));
+  $("#dayPills").addEventListener("click", e => {
+    const p = e.target.closest(".pill"); if (!p) return;
+    const d = +p.dataset.d;
+    state.days = state.days.includes(d) ? state.days.filter(x => x !== d) : [...state.days, d].sort((a, b) => a - b);
+    press($$("#dayPills .pill"), n => state.days.includes(+n.dataset.d)); update();
+  });
+  $$("[data-days]").forEach(b => b.addEventListener("click", () => {
+    state.days = b.dataset.days.split(",").map(Number);
+    press($$("#dayPills .pill"), n => state.days.includes(+n.dataset.d)); update();
+  }));
+  $("#breakRows").addEventListener("change", e => {
+    const row = e.target.closest(".brow"); if (!row) return;
+    const b = state.breaks[+row.dataset.i], k = e.target.dataset.k;
+    if (k === "dur") b.dur = +e.target.value; else b[k] = e.target.value;
+    if (k === "type") b.dur = defaultDur(b.type);
+    state.touched = true;                              // untouched posting times follow the new break time
+    if (k === "type") renderBreakRows();
+    renderManualRows(); update();
+  });
+  $("#breakRows").addEventListener("click", e => {
+    const x = e.target.closest("[data-del]"); if (!x) return;
+    state.breaks.splice(+x.dataset.del, 1); state.touched = true; renderAll();
+  });
+  $("#addBreak").addEventListener("click", () => {
+    const hasMeal = state.breaks.some(b => b.type !== "Break");
+    state.breaks.push({ type: hasMeal ? "Break" : "Lunch", time: "", dur: hasMeal ? 30 : 45, postAt: "", postTouched: false });
+    state.touched = true; renderAll();
+  });
+  $("#useSuggested").addEventListener("click", () => { const s = suggestedFor(state.shift); if (s) { state.breaks = s; state.touched = false; renderAll(); } });
+  $("#timingSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state.timing = b.dataset.v; renderAll(); });
+  $("#leadPills").addEventListener("click", e => {
+    const p = e.target.closest(".pill"); if (!p) return;
+    state.lead = +p.dataset.v; press($$("#leadPills .pill"), n => +n.dataset.v === state.lead);
+    renderManualRows(); update();
+  });
+  $("#manualRows").addEventListener("change", e => {
+    const row = e.target.closest(".mrow"); if (!row) return;
+    const b = state.breaks[+row.dataset.i];
+    b.postAt = e.target.value; b.postTouched = !!e.target.value; update();
+  });
+  $("#leads").addEventListener("input", e => { state.leads = e.target.value; update(); });
+  $("#dm").addEventListener("change", e => { state.dm = e.target.checked; update(); });
+  $("#modeSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state.mode = b.dataset.v; press($$("#modeSeg button"), n => n.dataset.v === state.mode); update(); });
+  $("#copyMsg").addEventListener("click", copyMessage);
+  $("#copyMsg2").addEventListener("click", copyMessage);
+  $("#copyLink").addEventListener("click", () => {
+    copyText(location.href.split("#")[0] + hashFor(state)).then(ok => toast(ok ? "Plan link copied. Bookmark it to come back later." : "Couldn't copy the link."));
+  });
+  $("#ics").addEventListener("click", () => {
+    const plan = computePlan(state);
+    if (!plan.rows.some(r => r.post != null && r.level !== "error")) { toast("Nothing to add yet."); return; }
+    try {
+      const url = URL.createObjectURL(new Blob([buildICS(state, plan, Date.now())], { type: "text/calendar" }));
+      const a = document.createElement("a"); a.href = url; a.download = "recharge-desk-break-reminders.ics";
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+      toast("Calendar file downloaded. Open it to add the reminders.");
+    } catch (e) { toast("Your browser blocked the download."); }
+  });
+  $("#reset").addEventListener("click", () => { state = JSON.parse(JSON.stringify(DEFAULT)); renderAll(); toast("Started over."); });
+  setInterval(() => renderNext(computePlan(state)), 30000);
+}
+
+/* ---- reveal on scroll ---- */
+function reveal() {
+  const els = $$(".reveal");
+  if (!("IntersectionObserver" in window)) { els.forEach(el => el.classList.add("in")); return; }
+  const io = new IntersectionObserver(entries => entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } }), { threshold: 0.12 });
+  els.forEach(el => io.observe(el));
+  setTimeout(() => els.forEach(el => el.classList.add("in")), 2500);   // never leave content hidden
+}
+
+buildStatic();
+loadHash();
+bind();
+renderAll();
+reveal();
+</script>
+</body>
+</html>
